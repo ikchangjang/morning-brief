@@ -60,10 +60,26 @@
   .status{font-size:12px; color:var(--sub); margin-top:8px;}
   .refresh-row{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
   .refresh-row h2{font-size:15px; font-weight:600; margin:0;}
+  #lock-screen{
+    max-width:340px; margin:80px auto; text-align:center;
+  }
+  #lock-screen h1{font-size:18px; font-weight:600; margin-bottom:16px;}
+  #lock-screen input{width:100%; margin-bottom:10px; text-align:center;}
+  #lock-screen button{width:100%;}
+  #lock-error{color:var(--down); font-size:13px; margin-top:8px; min-height:16px;}
+  #app{display:none;}
 </style>
 </head>
 <body>
-<div class="wrap">
+
+<div id="lock-screen">
+  <h1>비밀번호를 입력하세요</h1>
+  <input type="password" id="pw-input" placeholder="비밀번호" />
+  <button class="primary" id="pw-btn">확인</button>
+  <p id="lock-error"></p>
+</div>
+
+<div class="wrap" id="app">
   <header>
     <h1>오늘의 포트폴리오 브리핑</h1>
     <p id="today-date"></p>
@@ -102,7 +118,36 @@
 </div>
 
 <script>
+// 비밀번호는 여기서 원하는 값으로 바꾸세요
+const SITE_PASSWORD = 'family2026';
+
+function checkAuth(){
+  return sessionStorage.getItem('authed') === 'yes';
+}
+function tryLogin(){
+  const input = document.getElementById('pw-input');
+  const err = document.getElementById('lock-error');
+  if(input.value === SITE_PASSWORD){
+    sessionStorage.setItem('authed', 'yes');
+    document.getElementById('lock-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadHoldings();
+  } else {
+    err.textContent = '비밀번호가 올바르지 않습니다.';
+    input.value = '';
+  }
+}
+document.getElementById('pw-btn').addEventListener('click', tryLogin);
+document.getElementById('pw-input').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') tryLogin();
+});
 let holdings = [];
+
+if(checkAuth()){
+  document.getElementById('lock-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadHoldings();
+}
 
 const dateEl = document.getElementById('today-date');
 dateEl.textContent = new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'long' });
@@ -273,8 +318,6 @@ document.getElementById('add-btn').addEventListener('click', async () => {
 });
 
 document.getElementById('refresh-btn').addEventListener('click', refreshPrices);
-
-loadHoldings();
 </script>
 </body>
 </html>
